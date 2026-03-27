@@ -9,20 +9,41 @@ export class Game extends Scene
 
     create ()
     {
-        this.cameras.main.setBackgroundColor(0x00ff00);
+        //player. (retangulo enquanto nao temos um sprite)
+        this.player = this.add.rectangle(100, 100, 64, 64, 0x00ff00);
 
-        this.add.image(512, 384, 'background').setAlpha(0.5);
 
-        this.add.text(512, 384, 'Make something fun!\nand share it with us:\nsupport@phaser.io', {
-            fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
-            stroke: '#000000', strokeThickness: 8,
-            align: 'center'
-        }).setOrigin(0.5);
+        //fisica do personagem, para que ele colida com paredes
+        this.physics.add.existing(this.player);
 
-        this.input.once('pointerdown', () => {
 
-            this.scene.start('GameOver');
+        //movimentacao do personagem
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.wasd = this.input.keyboard.addKeys('W,A,S,D');
 
-        });
+
+        }
+
+        update (){
+        const speed = 200;
+
+        //se o player estiver parado, a velocidade é 0
+        this.player.body.setVelocity(0);
+
+        //logica 
+        if (this.cursors.left.isDown || this.wasd.A.isDown) {
+            this.player.body.setVelocityX(-speed);
+        } else if (this.cursors.right.isDown || this.wasd.D.isDown) {
+            this.player.body.setVelocityX(speed);
+        }
+
+        if (this.cursors.up.isDown || this.wasd.W.isDown) {
+            this.player.body.setVelocityY(-speed);
+        } else if (this.cursors.down.isDown || this.wasd.S.isDown) {
+            this.player.body.setVelocityY(speed);
+        }
+
+        //impede que o personagem se mova mais rápido na diagonal
+        this.player.body.velocity.normalize().scale(speed);
     }
 }
