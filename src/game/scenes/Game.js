@@ -1,4 +1,7 @@
 import { Scene } from 'phaser';
+import { Spawner } from './SpawnEnemies.js';
+
+// Felipe Thomaz transforma o seu código do player em um arquivo separado e importa para ficar mais organizado (:
 
 export class Game extends Scene
 {
@@ -29,6 +32,12 @@ export class Game extends Scene
 
 
         this.add.grid(1000, 1000, 2000, 2000, 50, 50, 0x000000, 0, 0x333333, 0.5).setDepth(-1);
+
+        // instancia
+        this.spawner = new Spawner(this); 
+
+        // adiciona a colisão entre o player e os inimigos
+        this.physics.add.collider(this.player, this.spawner.groupEnemies, this.takeDamage, null, this);
         }
 
         update (){
@@ -52,5 +61,15 @@ export class Game extends Scene
 
         //impede que o personagem se mova mais rápido na diagonal
         this.player.body.velocity.normalize().scale(speed);
+
+
+            this.spawner.update(this.player);
+        }
+
+
+    takeDamage(player, enemy) {
+        enemy.destroy();
+        player.fillColor = 0xff0000;
+        this.time.delayedCall(300, () => { player.fillColor = 0x00ff00; }, [], this); // muda o player de cor 
     }
 }
