@@ -24,12 +24,25 @@ export class Spawner {
         this.groupEnemies.add(enemy);
     }
 
-    // essa função faz o inimigo andar e ir atrás do player 
-    update(player) {
+    // essa função faz o inimigo andar e ir atrás do alvo mais próximo dentro de um array
+    updateVisandoArray(player, arrayEstruturas) {
         this.groupEnemies.getChildren().forEach(enemy => {
             if (enemy.active) {
-                // se move na direção do player
-                this.scene.physics.moveToObject(enemy, player, 100);
+                let target = player;
+                let minDist = Phaser.Math.Distance.Between(enemy.x, enemy.y, player.x, player.y);
+
+                arrayEstruturas.forEach(estrutura => {
+                    if (estrutura && estrutura.active) {
+                        let distEstrutura = Phaser.Math.Distance.Between(enemy.x, enemy.y, estrutura.x, estrutura.y);
+                        if (distEstrutura < minDist) {
+                            target = estrutura;
+                            minDist = distEstrutura;
+                        }
+                    }
+                });
+                
+                // se move na direção do alvo
+                this.scene.physics.moveToObject(enemy, target, 100);
             }
         });
     }

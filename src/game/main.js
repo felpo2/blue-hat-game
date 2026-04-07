@@ -3,6 +3,7 @@ import { Game as MainGame } from './scenes/Game';
 import { GameOver } from './scenes/GameOver';
 import { MainMenu } from './scenes/MainMenu';
 import { Preloader } from './scenes/Preloader';
+import { UpgradeMenu } from './scenes/UpgradeMenu';
 import { AUTO, Game, Physics } from 'phaser';
 
 //  Find out more information about the Game Config at:
@@ -13,20 +14,21 @@ const config = {
     height: 768,
     parent: 'game-container',
     backgroundColor: '#028af8',
-    physics:{
+    physics: {
         default: 'arcade',
-        arcade:{
-            gravity: {y:0},
+        arcade: {
+            gravity: { y: 0 },
             debug: true,
         },
     },
-    
+
     scene: [
         Boot,
         Preloader,
         MainMenu,
         MainGame,
-        GameOver
+        GameOver,
+        UpgradeMenu
     ]
 };
 

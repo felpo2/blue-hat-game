@@ -51,6 +51,17 @@ export class UIManager {
         .setOrigin(0.5, 0)
         .setScrollFactor(0)
         .setDepth(102);
+
+        // TEXTO DE VIDAS RESERVA
+        this.textoVidas = cena.add.text(16, 75, 'Vidas: 5', {
+            fontFamily: 'Courier New',
+            fontSize: '18px',
+            fill: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 3
+        })
+        .setScrollFactor(0)
+        .setDepth(100);
     }
 
     atualizar() {
@@ -69,5 +80,8 @@ export class UIManager {
         }
 
         this.textoVida.setText(`${this.stats.vida} / ${this.stats.vidaMaxima}`);
+        
+        // Atualiza Quantas vidas extras restam
+        this.textoVidas.setText(`Vidas: ${this.stats.vidas}`);
     }
 }
