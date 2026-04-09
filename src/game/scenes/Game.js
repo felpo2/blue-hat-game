@@ -65,10 +65,9 @@ export class Game extends Scene {
             callback: () => {
                 if (this.modoConstrucaoAtivo) return; // Pausa o tick no modo contrução invisivel
                 this.stats.tick();
-                // Verifica se mudou a rodada
+                // Verifica se mudou a rodada puramente por status, nao pause mais.
                 if (this.stats.tempoEmSegundos % 30 === 0 && this.stats.tempoEmSegundos > 0) {
-                    this.scene.pause('Game');
-                    this.scene.launch('UpgradeMenu', { stats: this.stats });
+                    this.stats.rodada++;
                 }
             }
         });
@@ -99,11 +98,11 @@ export class Game extends Scene {
             (player, moeda) => this._aoColetarMoeda(player, moeda)
         );
 
-        // Colisão entre projéteis e inimigos
+        // Colisão entre projéteis do player e inimigos
         this.physics.add.overlap(
             this.player.getGrupoProjecteis(),
             this.spawner.groupEnemies,
-            (proj, enemy) => this._aoAcertarInimigo(proj, enemy)
+            (proj, enemy) => this._aoAcertarInimigo(proj, enemy, true)
         );
 
         // Colisão dos inimigos contra a Torre (Para causar dano)
@@ -117,7 +116,7 @@ export class Game extends Scene {
         this.physics.add.overlap(
             this.projetosTorres,
             this.spawner.groupEnemies,
-            (proj, enemy) => this._aoAcertarInimigo(proj, enemy)
+            (proj, enemy) => this._aoAcertarInimigo(proj, enemy, false)
         );
 
         // Input mouse para construir
@@ -182,6 +181,19 @@ export class Game extends Scene {
         }
     }
 
+    eventoMonstroMorto(xpBase) {
+        if (this.stats.ganharXp(xpBase)) {
+            // Se ocorreu Level UP = Vai pras compras de Cartas Automático
+            this._mostrarTextoFlutuante(this.player.player.x, this.player.player.y - 40, 'LEVEL UP!', '#00aaff');
+            
+            // Pausa um tiquinho mais liso o game para nãp assustar
+            this.time.delayedCall(100, () => {
+                this.scene.pause('Game');
+                this.scene.launch('UpgradeMenu', { stats: this.stats });
+            });
+        }
+    }
+
     _aoColetarMoeda(player, moeda) {
         const valorOriginal = moeda.valor || 1;
         const valor = valorOriginal * this.stats.multiplicadorMoeda;
@@ -191,19 +203,23 @@ export class Game extends Scene {
         this._mostrarTextoFlutuante(moeda.x, moeda.y, `+${valor}`, '#ffe066');
     }
 
-    _aoAcertarInimigo(proj, enemy) {
+    _aoAcertarInimigo(proj, enemy, isPlayer = true) {
         proj.destroy();
-        const dano = 10;
+        const danoPlayer = this.stats.danoTiro || 15;
+        const danoTorreSecundaria = 25; // Dano fixo bom da estrutura!
+        
+        const forcaTiro = isPlayer ? danoPlayer : danoTorreSecundaria;
 
         if (enemy instanceof Inimigo) {
-            enemy.receberDano(dano);
+            enemy.receberDano(forcaTiro, isPlayer);
         } else {
             // Inimigos simples (retângulos sem classe Inimigo)
             if (!enemy.vida) enemy.vida = 30;
-            enemy.vida -= dano;
+            enemy.vida -= forcaTiro;
 
             if (enemy.vida <= 0) {
                 this.droparMoedas(enemy.x, enemy.y, 1);
+                if (isPlayer && this.eventoMonstroMorto) this.eventoMonstroMorto(10);
                 enemy.destroy();
             }
         }

@@ -6,11 +6,18 @@ export class PlayerStats {
         this.moedas = 0;
         this.tempoEmSegundos = 0;
         this.morreu = false;
+        this.rodada = 1;
+
+        // Sistema de XP
+        this.xp = 0;
+        this.xpMaximo = 50; // Começa pedindo cap pequeno (5 monstros +- 10xp)
+        this.nivelAtual = 1;
 
         // faz upgrade na moeda
         this.multiplicadorMoeda = 1;
-        // faz upgrade no tiro
-        this.intervaloTiro = 200;
+        // faz upgrade no tiro (Velocidade suave)
+        this.intervaloTiro = 600;
+        this.danoTiro = 25;
         //  Custo upgrade na vida
         this.custoUpgradeVida = 10;
         // Custo do upgrade na moeda
@@ -69,5 +76,19 @@ export class PlayerStats {
 
     estaVivo() {
         return !this.morreu;
+    }
+
+    ganharXp(quantidade) {
+        let levelUp = false;
+        this.xp += quantidade;
+
+        if (this.xp >= this.xpMaximo) {
+            this.xp -= this.xpMaximo;
+            this.nivelAtual++;
+            // Aumenta o cap do proximo nivel de forma escalar (50% a mais do anterior)
+            this.xpMaximo = Math.floor(this.xpMaximo * 1.5);
+            levelUp = true;
+        }
+        return levelUp;
     }
 }

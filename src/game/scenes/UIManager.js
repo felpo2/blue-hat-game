@@ -6,7 +6,7 @@ export class UIManager {
         const W = cena.scale.width;
 
         // TEMPORIZADOR — centro, topo
-        this.textoTempo = cena.add.text(W / 2, 16, '00:00', {
+        this.textoTempo = cena.add.text(W / 2, 80, '00:00', {
             fontFamily: 'Courier New',
             fontSize: '28px',
             fill: '#ffffff',
@@ -16,6 +16,38 @@ export class UIManager {
         .setOrigin(0.5, 0)
         .setScrollFactor(0)
         .setDepth(100);
+
+        // INDICADOR DE ONDA - canto superior direito
+        this.textoOnda = cena.add.text(W - 20, 20, 'ONDA: 1', {
+            fontFamily: 'Courier New',
+            fontSize: '28px',
+            fill: '#ff5555',
+            stroke: '#000000',
+            strokeThickness: 4,
+            fontStyle: 'bold'
+        })
+        .setOrigin(1, 0)
+        .setScrollFactor(0)
+        .setDepth(100);
+
+        // BARRA DE XP — topo centro
+        this.barraXpFundo = cena.add.rectangle(W / 2, 35, 400, 15, 0x111111)
+            .setOrigin(0.5, 0)
+            .setScrollFactor(0)
+            .setDepth(100);
+
+        this.barraXpGlow = cena.add.rectangle((W / 2) - 200, 35, 0, 15, 0x00aaff)
+            .setOrigin(0, 0)
+            .setScrollFactor(0)
+            .setDepth(101);
+
+        this.textoNivel = cena.add.text(W / 2, 43, 'LV. 1', {
+            fontFamily: 'Courier New',
+            fontSize: '14px',
+            fill: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 2
+        }).setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(102);
 
         // MOEDAS — canto superior esquerdo
         this.textoMoedas = cena.add.text(16, 16, '$ 0', {
@@ -81,7 +113,16 @@ export class UIManager {
 
         this.textoVida.setText(`${this.stats.vida} / ${this.stats.vidaMaxima}`);
         
-        // Atualiza Quantas vidas extras restam
+        // tualiza Quantas vidas extras restam
         this.textoVidas.setText(`Vidas: ${this.stats.vidas}`);
+
+        // atualiza a onda no canto
+        this.textoOnda.setText(`ONDA: ${this.stats.rodada}`);
+
+        // atualiza barra de XP
+        const pctXp = Math.min(1, this.stats.xp / this.stats.xpMaximo);
+        // barra tem tamanho max de 400px de width  
+        this.barraXpGlow.width = 400 * pctXp;
+        this.textoNivel.setText(`LV. ${this.stats.nivelAtual}`);
     }
 }

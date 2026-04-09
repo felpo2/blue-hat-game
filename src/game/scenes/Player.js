@@ -15,7 +15,6 @@ export class Player {
         // Controles
         this.cursors = scene.input.keyboard.createCursorKeys();
         this.wasd = scene.input.keyboard.addKeys('W,A,S,D');
-        this.spacebar = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
         this.speed = 200;
         this.lastDirection = { x: 0, y: -1 }; // Direção padrão: cima
@@ -63,16 +62,32 @@ export class Player {
             this.lastDirection.y = 1;
         }
 
-        // Impede que o personagem se mova mais rápido na diagonal
+        // impede que o personagem se mova mais rápido na diagonal
         this.player.body.velocity.normalize().scale(this.speed);
 
-        // Sistema de tiro
-        if (this.spacebar.isDown) {
-            this.atirar();
+        // sistema de auto-tiro (pegar inimigo mais perto num raio)
+        if (this.scene.spawner && this.scene.spawner.groupEnemies) {
+            const inimigos = this.scene.spawner.groupEnemies.getChildren();
+            let alvoMaisProximo = null;
+            let menorDist = 500; // alcance de tiro do player
+
+            inimigos.forEach(inimigo => {
+                if (inimigo.active) {
+                    const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, inimigo.x, inimigo.y);
+                    if (dist < menorDist) {
+                        menorDist = dist;
+                        alvoMaisProximo = inimigo;
+                    }
+                }
+            });
+
+            if (alvoMaisProximo) {
+                this.atirar(alvoMaisProximo);
+            }
         }
     }
 
-    atirar() {
+    atirar(alvo) {
         const agora = this.scene.time.now;
         //
         if (agora - this.ultimoTiro < this.scene.stats.intervaloTiro) {
@@ -80,27 +95,24 @@ export class Player {
         }
         this.ultimoTiro = agora;
 
-        // Cria o projétil como sprite
+        // Calcula vetor de direção normalizado
+        const angulo = Math.atan2(alvo.y - this.player.y, alvo.x - this.player.x);
+        const dirX = Math.cos(angulo);
+        const dirY = Math.sin(angulo);
+
+        // Cria o projétil como sprite direto da borda
         const proj = this.grupoProjecteis.create(
-            this.player.x + this.lastDirection.x * 30,
-            this.player.y + this.lastDirection.y * 30,
+            this.player.x + (dirX * 20),
+            this.player.y + (dirY * 20),
             'projetil'
         );
 
-        if (!proj) {
-            console.error('Erro: projétil não foi criado');
-            return;
-        }
+        if (!proj) return;
 
-        // Configura velocidade
+        // Configura velocidade guiada para a direção estática final
         const projVel = 400;
-        proj.body.setVelocity(
-            this.lastDirection.x * projVel,
-            this.lastDirection.y * projVel
-        );
+        proj.body.setVelocity(dirX * projVel, dirY * projVel);
         proj.body.setCollideWorldBounds(false);
-
-        console.log(`Projétil criado em (${proj.x}, ${proj.y}) com velocidade (${proj.body.velocity.x}, ${proj.body.velocity.y})`);
 
         // Remove projétil após 5 segundos
         this.scene.time.delayedCall(5000, () => {
