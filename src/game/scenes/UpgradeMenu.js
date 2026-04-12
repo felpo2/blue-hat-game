@@ -10,162 +10,184 @@ export class UpgradeMenu extends Scene {
         const W = this.scale.width;
         const H = this.scale.height;
 
-        const darkBg = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.7);
-        darkBg.setInteractive();
+        this.add.rectangle(0, 0, W, H, 0x000000, 0.85).setOrigin(0);
 
-        this.add.text(W / 2, H / 2 - 250, 'ESCOLHA SEU UPGRADE', {
-            fontFamily: 'Courier New',
-            fontSize: '36px',
-            fill: '#ffffff',
-            stroke: '#000000',
-            strokeThickness: 5
-        }).setOrigin(0.5);
-
-        this.add.text(W / 2, H / 2 - 200, `Carteira: $${this.stats.moedas}`, {
-            fontFamily: 'Courier New',
+        this.add.text(W / 2, H * 0.15, 'ESCOLHA UM UPGRADE', {
+            fontFamily: '"Press Start 2P"',
             fontSize: '24px',
-            fill: '#ffe066'
+            fill: '#ffffff',
+            align: 'center'
         }).setOrigin(0.5);
 
-        // lista de todas as 4 opções possíveis (adicionar mais opções e mais status)
         const opcoes = [
+            // UPGRADES PLAYER 
             {
-                titulo: 'Vida Máxima\n(+20)',
-                descricao: 'Aumente o cap de sangue',
-                custo: this.stats.custoUpgradeVida,
-                cor: 0xff4444,
+                titulo: 'CURATIVO\n(+50 HP)',
+                descricao: 'Recupera danos',
+                custo: 5,
+                cor: 0xaa2266,
                 acao: () => {
-                    if (this.stats.gastarMoedas(this.stats.custoUpgradeVida)) {
-                        this.stats.vidaMaxima += 20;
-                        this.stats.vida += 20;
-                        this.stats.custoUpgradeVida += 10;
+                    if (this.stats.gastarMoedas(5)) {
+                        this.stats.curar(50);
                         this.fecharMenu();
                     }
                 }
             },
             {
-                titulo: 'Dinheiro Extra\n(+50%)',
-                descricao: 'Lucre mais nas moedas',
-                custo: this.stats.custoUpgradeMoeda,
-                cor: 0xffe066,
-                acao: () => {
-                    if (this.stats.gastarMoedas(this.stats.custoUpgradeMoeda)) {
-                        this.stats.multiplicadorMoeda += 0.5;
-                        this.stats.custoUpgradeMoeda += 10;
-                        this.fecharMenu();
-                    }
-                }
-            },
-            {
-                titulo: 'Tiro Rápido\n(-20ms)',
-                descricao: 'Reduz Cooldown de Disparo',
+                titulo: 'TIRO RAPIDO\n(-50ms)',
+                descricao: 'Atire veloz',
                 custo: this.stats.custoUpgradeTiro,
-                cor: 0x44ff44,
+                cor: 0x33ff33,
                 acao: () => {
                     if (this.stats.gastarMoedas(this.stats.custoUpgradeTiro)) {
-                        this.stats.intervaloTiro = Math.max(20, this.stats.intervaloTiro - 20);
+                        this.stats.intervaloTiro = Math.max(100, this.stats.intervaloTiro - 50);
                         this.stats.custoUpgradeTiro += 10;
                         this.fecharMenu();
                     }
                 }
             },
+            //  UPGRADES TORRE PRINCIPAL (MEIO) 
             {
-                titulo: 'Construir\nTorre',
-                descricao: 'Posiciona torre que atira',
-                custo: this.stats.custoConstruirTorre,
-                cor: 0x4444ff,
+                titulo: 'T.CENTRAL: ATK\n(+20 DANO)',
+                descricao: 'Torre do meio mais forte',
+                custo: 10,
+                cor: 0xff8c00,
+                tipo: 'principal',
                 acao: () => {
-                    if (this.stats.gastarMoedas(this.stats.custoConstruirTorre)) {
-                        // não aumenta de preço logo de cara, ou podemos aumentar
-                        this.stats.custoConstruirTorre += 15;
-                        this.iniciarModoConstrucao();
+                    if (this.stats.gastarMoedas(10)) {
+                        this.stats.danoTorrePrincipal += 20;
+                        this.fecharMenu();
+                    }
+                }
+            },
+            {
+                titulo: 'T.CENTRAL: VIDA\n(+100 HP)',
+                descricao: 'Mais vida para o meio',
+                custo: 12,
+                cor: 0x44bbff,
+                tipo: 'principal',
+                acao: () => {
+                    if (this.stats.gastarMoedas(12)) {
+                        const gameScene = this.scene.get('Game');
+                        if (gameScene && gameScene.torre) {
+                            gameScene.torre.vidaMaxima += 100;
+                            gameScene.torre.vida += 100;
+                        }
+                        this.fecharMenu();
+                    }
+                }
+            },
+            // UPGRADES MINI TORRE 
+            {
+                titulo: 'MINI: DANO\n(+15 ATK)',
+                descricao: 'Mini torres letais',
+                custo: 8,
+                cor: 0xff44ff,
+                tipo: 'mini',
+                acao: () => {
+                    if (this.stats.gastarMoedas(8)) {
+                        this.stats.danoMiniTorre += 15;
+                        this.fecharMenu();
+                    }
+                }
+            },
+            {
+                titulo: 'MINI: ALCANCE\n(+100 RANGE)',
+                descricao: 'Mini torres enxergam longe',
+                custo: 10,
+                cor: 0xaa44ff,
+                tipo: 'mini',
+                acao: () => {
+                    if (this.stats.gastarMoedas(10)) {
+                        this.stats.rangeMiniTorre += 100;
+                        this.fecharMenu();
                     }
                 }
             }
         ];
 
-        // sorteia exatamente 3 opções
-        Phaser.Utils.Array.Shuffle(opcoes);
-        const escolhidas = opcoes.slice(0, 3);
+        // LOGICA DE FILTRO: Só mostra upgrades de Mini Torre se houver torres construídas *Felipe Tomadas isso me causou uma dor de cabeça mas foi resolvido kkkk
+        const gameScene = this.scene.get('Game');
+        const temMiniTorre = gameScene && gameScene.grupoTorresSecundarias && gameScene.grupoTorresSecundarias.getLength() > 0;
 
-        const cardWidth = 220;
-        const cardHeight = 280;
-        const spacing = 40;
-        const startX = (W / 2) - cardWidth - spacing;
-
-        // renderiza as 3 Cartas
-        escolhidas.forEach((opt, index) => {
-            const x = startX + (index * (cardWidth + spacing));
-            const y = H / 2 + 20;
-
-            this.criarCarta(x, y, cardWidth, cardHeight, opt);
+        const poolFiltrada = opcoes.filter(op => {
+            if (op.tipo === 'mini' && !temMiniTorre) return false;
+            return true;
         });
 
-        // botão de Pular para não prender o jogador sem dinheiro
-        const pularBg = this.add.rectangle(W / 2, H - 80, 200, 40, 0x550000).setInteractive();
-        pularBg.setStrokeStyle(2, 0xffffff);
-        this.add.text(W / 2, H - 80, 'PULAR DE GRAÇA', {
-            fontFamily: 'Courier New',
-            fontSize: '18px',
-            fill: '#ffffff'
-        }).setOrigin(0.5);
+        const sorteados = Phaser.Utils.Array.Shuffle(poolFiltrada).slice(0, 3);
+        const cardWidth = 240;
+        const spacing = 30;
+        const startX = (W - ((cardWidth * 3) + (spacing * 2))) / 2 + (cardWidth / 2);
 
-        pularBg.on('pointerdown', () => this.fecharMenu());
-        pularBg.on('pointerover', () => pularBg.setFillStyle(0x770000));
-        pularBg.on('pointerout', () => pularBg.setFillStyle(0x550000));
+        sorteados.forEach((opt, index) => {
+            const x = startX + (index * (cardWidth + spacing));
+            const y = H / 2;
+            const podeComprar = this.stats.moedas >= opt.custo;
+
+            const card = this.add.rectangle(x, y, cardWidth, 340, podeComprar ? opt.cor : 0x333333, 0.9)
+                .setStrokeStyle(4, 0xffffff)
+                .setInteractive({ useHandCursor: true });
+
+            this.add.text(x, y - 110, opt.titulo, {
+                fontFamily: '"Press Start 2P"',
+                fontSize: '12px',
+                fill: '#fff',
+                align: 'center',
+                lineSpacing: 8
+            }).setOrigin(0.5);
+
+            this.add.text(x, y - 10, opt.descricao, {
+                fontFamily: '"Press Start 2P"',
+                fontSize: '8px',
+                fill: '#ddd',
+                align: 'center',
+                wordWrap: { width: cardWidth - 40 }
+            }).setOrigin(0.5);
+
+            this.add.text(x, y + 100, `$ ${opt.custo}`, {
+                fontFamily: '"Press Start 2P"',
+                fontSize: '20px',
+                fill: podeComprar ? '#ffe066' : '#ff4444'
+            }).setOrigin(0.5);
+
+            if (podeComprar) {
+                card.on('pointerdown', () => {
+                    this.sound.play('select');
+                    opt.acao();
+                });
+                card.on('pointerover', () => {
+                    card.setScale(1.05);
+                    card.setStrokeStyle(4, 0xffff00);
+                });
+                card.on('pointerout', () => {
+                    card.setScale(1);
+                    card.setStrokeStyle(4, 0xffffff);
+                });
+            } else {
+                card.setAlpha(0.6);
+            }
+        });
+
+        const btnPular = this.add.text(W / 2, H * 0.88, '[ PULAR (GRATIS) ]', {
+            fontFamily: '"Press Start 2P"',
+            fontSize: '10px',
+            fill: '#888'
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+        btnPular.on('pointerdown', () => {
+            this.sound.play('select');
+            this.fecharMenu();
+        });
+        
+        btnPular.on('pointerover', () => btnPular.setColor('#ffffff'));
+        btnPular.on('pointerout', () => btnPular.setColor('#888888'));
     }
 
-    criarCarta(x, y, w, h, config) {
-        const podeComprar = this.stats.moedas >= config.custo;
-
-        // fundo da Carta
-        const bgCarta = this.add.rectangle(x, y, w, h, 0x222222).setInteractive();
-        bgCarta.setStrokeStyle(4, podeComprar ? config.cor : 0x555555);
-
-        if (podeComprar) {
-            bgCarta.on('pointerover', () => { bgCarta.setScale(1.05); });
-            bgCarta.on('pointerout', () => { bgCarta.setScale(1.0); });
-            bgCarta.on('pointerdown', config.acao);
-        } else {
-            bgCarta.setAlpha(0.6); // deixa fosca se não puder comprar
-        }
-
-        // textos 
-        this.add.text(x, y - 80, config.titulo, {
-            fontFamily: 'Courier New',
-            fontSize: '22px',
-            fill: '#ffffff',
-            align: 'center',
-            stroke: '#000000',
-            strokeThickness: 3
-        }).setOrigin(0.5);
-
-        this.add.text(x, y + 10, config.descricao, {
-            fontFamily: 'Arial',
-            fontSize: '14px',
-            fill: '#cccccc',
-            align: 'center',
-            wordWrap: { width: w - 20 }
-        }).setOrigin(0.5);
-
-        // valor
-        const bgCusto = this.add.rectangle(x, y + 80, 120, 40, podeComprar ? config.cor : 0x333333);
-        const corLetraCusto = podeComprar ? '#000000' : '#ff5555';
-        this.add.text(x, y + 80, `$ ${config.custo}`, {
-            fontFamily: 'Courier New',
-            fontSize: '22px',
-            fill: corLetraCusto,
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
-    }
-
-    fecharMenu() {
-        this.scene.resume('Game', { acao: 'resume_normal' });
-        this.scene.stop();
-    }
-
-    iniciarModoConstrucao() {
-        this.scene.resume('Game', { acao: 'modo_construcao' });
+    fecharMenu(acao = 'resume_normal') {
+        const gameScene = this.scene.get('Game');
+        if (gameScene && gameScene.bgMusic) gameScene.bgMusic.setMute(false);
+        this.scene.resume('Game', { acao: acao });
         this.scene.stop();
     }
 }

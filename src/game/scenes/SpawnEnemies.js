@@ -10,8 +10,23 @@ export class Spawner {
     }
 
     spawner(rodada = 1) {
-        const x = Phaser.Math.Between(0, 2000);
-        const y = Phaser.Math.Between(0, 2000);
+        let x, y;
+        let dist = 0;
+        const minDistance = 500; // Distância minima 
+        let attempts = 0;
+
+        // Tenta achar uma posição longe do player (máximo 10 tentativas para performance. bug resolvido *travamento)
+        do {
+            x = Phaser.Math.Between(0, 2000);
+            y = Phaser.Math.Between(0, 2000);
+            
+            if (this.scene.player && this.scene.player.player) {
+                dist = Phaser.Math.Distance.Between(x, y, this.scene.player.player.x, this.scene.player.player.y);
+            } else {
+                dist = minDistance + 1; // se player não existir ainda
+            }
+            attempts++;
+        } while (dist < minDistance && attempts < 10);
 
         const enemy = new Inimigo(this.scene, x, y, rodada);
         this.groupEnemies.add(enemy);
@@ -22,8 +37,8 @@ export class Spawner {
         let rodadaAtual = this.scene.stats ? this.scene.stats.rodada : 1;
         const agora = this.scene.time.now;
         
-        // intervalo começa em 2500ms e cai 150ms a cada onda. limite mínimo de lotação de tela: 800ms pra não travar(experiencia propria kkkk).
-        let intervaloAtual = Math.max(800, 2500 - ((rodadaAtual - 1) * 150));
+        // Intervalo começa em 2000ms e cai 120ms por onda, mínimo 600ms
+        let intervaloAtual = Math.max(600, 2000 - ((rodadaAtual - 1) * 120));
 
         if (agora - this.ultimoSpawn >= intervaloAtual) {
             this.spawner(rodadaAtual);

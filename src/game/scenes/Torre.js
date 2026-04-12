@@ -2,8 +2,11 @@ export class Torre {
     constructor(scene, x, y) {
         this.scene = scene;
 
-        // (substituir por sprite da torre)
-        this.torre = scene.add.rectangle(x, y, 80, 80, 0xfca311);
+        // Sombra
+        scene.add.ellipse(x, y + 35, 90, 25, 0x000000, 0.3).setDepth(1);
+        
+        // Sprite da torre (MUDAR FUTURAMENTE)
+        this.torre = scene.add.rectangle(x, y, 80, 80, 0x6060c2);
 
         // física estática 
         scene.physics.add.existing(this.torre, true);
@@ -23,7 +26,7 @@ export class Torre {
         // efeito de dano
         this.torre.fillColor = 0xff0000;
         this.scene.time.delayedCall(150, () => {
-            if (this.torre.active && this.vida > 0) this.torre.fillColor = 0xfca311;
+            if (this.torre.active && this.vida > 0) this.torre.fillColor = 0x6060c2;
         });
 
         const proporcao = Math.max(0, this.vida / this.vidaMaxima);

@@ -1,3 +1,6 @@
+// IMPORTANTE: Migrar os status que não são do player para outra classe ou mudar o nome da classe
+
+
 export class PlayerStats {
     constructor(vidaMaxima = 100) {
         this.vidaMaxima = vidaMaxima;
@@ -10,22 +13,36 @@ export class PlayerStats {
 
         // Sistema de XP
         this.xp = 0;
-        this.xpMaximo = 50; // Começa pedindo cap pequeno (5 monstros +- 10xp)
+        this.xpMaximo = 30; // Começa mais fácil (3 monstros +- 10xp)
         this.nivelAtual = 1;
 
         // faz upgrade na moeda
         this.multiplicadorMoeda = 1;
-        // faz upgrade no tiro (Velocidade suave)
-        this.intervaloTiro = 600;
-        this.danoTiro = 25;
-        //  Custo upgrade na vida
-        this.custoUpgradeVida = 10;
+        // faz upgrade no tiro
+        this.intervaloTiro = 800;   // mais lento no início
+        this.danoTiro = 12;         // menos dano base
+        this.velocidade = 140;      // mais lento
+        
+        // Custo upgrade na vida
+        this.custoUpgradeVida = 5;
         // Custo do upgrade na moeda
-        this.custoUpgradeMoeda = 10;
+        this.custoUpgradeMoeda = 5;
         // Custo do upgrade no tiro
-        this.custoUpgradeTiro = 10;
-        // Custo da Construção de Torre Secundaria
-        this.custoConstruirTorre = 30;
+        this.custoUpgradeTiro = 5;
+        // Custo de velocidade 
+        this.custoUpgradeVelocidade = 10;
+        // Custo da Construção de Mini Torre 
+        this.custoConstruirTorre = 10;
+
+        // Stats Globais de Torre Principal
+        this.danoTorrePrincipal = 40;
+        this.rangeTorrePrincipal = 450;
+        this.vidaBaseTorrePrincipal = 500;
+
+        // Stats Globais de Mini Torre 
+        this.danoMiniTorre = 14;
+        this.rangeMiniTorre = 280;
+        this.vidaBaseMiniTorre = 200;
     }
 
     tick() {
@@ -43,8 +60,8 @@ export class PlayerStats {
     }
 
     gastarMoedas(quantidade) {
-        if (this.moedas >= quantidade) {
-            this.moedas -= quantidade;
+        if (this.moedas >= (quantidade || 0)) {
+            this.moedas -= (quantidade || 0);
             return true;
         }
         return false;
@@ -85,7 +102,7 @@ export class PlayerStats {
         if (this.xp >= this.xpMaximo) {
             this.xp -= this.xpMaximo;
             this.nivelAtual++;
-            // Aumenta o cap do proximo nivel de forma escalar (50% a mais do anterior)
+            // Dificuldade progressiva mais suave: aumenta 50% por nível
             this.xpMaximo = Math.floor(this.xpMaximo * 1.5);
             levelUp = true;
         }

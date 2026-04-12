@@ -9,34 +9,48 @@ export class GameOver extends Scene
 
     create ()
     {
-        this.cameras.main.setBackgroundColor(0x330000);
+        const W = this.scale.width;
+        const H = this.scale.height;
 
-        // tiramos o click em qualquer lugar
-        this.add.text(512, 300, 'A TORRE CAIU!', {
-            fontFamily: 'Courier New', 
-            fontSize: 64, 
+        this.cameras.main.fadeIn(500, 0, 0, 0);
+        this.cameras.main.setBackgroundColor(0x000000);
+
+        this.add.text(W / 2, H * 0.35, 'BLUE HAT\nDELETADO', {
+            fontFamily: '"Press Start 2P"',
+            fontSize: '40px',
             color: '#ff4444',
-            stroke: '#000000', 
-            strokeThickness: 8,
-            align: 'center'
+            align: 'center',
+            lineSpacing: 20
+        }).setOrigin(0.5);
+
+        // Recorde atual para contexto
+        const recordeOnda = localStorage.getItem('highscore_onda') || 0;
+        this.add.text(W / 2, H * 0.55, `VOCE SOBREVIVEU ATE A\nONDA ${recordeOnda}`, {
+            fontFamily: '"Press Start 2P"',
+            fontSize: '14px',
+            color: '#ffffff',
+            align: 'center',
+            lineSpacing: 10
         }).setOrigin(0.5);
 
         // botão de voltar ao inicio
-        const btnVoltar = this.add.rectangle(512, 450, 400, 60, 0x550000).setInteractive();
+        const btnVoltar = this.add.rectangle(W / 2, H * 0.75, 400, 60, 0x6060c2).setInteractive();
         btnVoltar.setStrokeStyle(4, 0xffffff);
 
-        this.add.text(512, 450, 'VOLTAR AO INÍCIO', {
-            fontFamily: 'Courier New',
-            fontSize: '28px',
-            color: '#ffffff',
-            stroke: '#000000',
-            strokeThickness: 3
+        this.add.text(W / 2, H * 0.75, 'REINICIAR', {
+            fontFamily: '"Press Start 2P"',
+            fontSize: '18px',
+            color: '#ffffff'
         }).setOrigin(0.5);
 
-        btnVoltar.on('pointerover', () => btnVoltar.setFillStyle(0x880000));
-        btnVoltar.on('pointerout', () => btnVoltar.setFillStyle(0x550000));
+        btnVoltar.on('pointerover', () => btnVoltar.setFillStyle(0x7070d2));
+        btnVoltar.on('pointerout', () => btnVoltar.setFillStyle(0x6060c2));
         btnVoltar.on('pointerdown', () => {
-            this.scene.start('MainMenu');
+            this.sound.play('select');
+            this.cameras.main.fadeOut(500, 0, 0, 0);
+            this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+                this.scene.start('MainMenu');
+            });
         });
     }
 }
